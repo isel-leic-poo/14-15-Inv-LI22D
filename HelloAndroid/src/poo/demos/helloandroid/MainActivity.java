@@ -1,17 +1,23 @@
 package poo.demos.helloandroid;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	private static final String MSG_BOX_STATE_KEY = "msgBoxState";
+	private static final String GAME_STATE_KEY = "reversedState";
+	
 	private TextView msgBox;
 	private CustomView myView;
 	
@@ -23,12 +29,12 @@ public class MainActivity extends Activity {
 		LinearLayout root = new LinearLayout(this);
 		root.setOrientation(LinearLayout.VERTICAL);		
 		msgBox = new TextView(this);
-		msgBox.setText("SLB rules!!!");
 		msgBox.setTextSize(18);
-		boolean isVisible = false;
+		String msgBoxState = "";
 		if(savedInstanceState != null)
-			isVisible = savedInstanceState.getBoolean("isVisible");
-		msgBox.setVisibility(!isVisible ? View.INVISIBLE : View.VISIBLE);
+			msgBoxState = savedInstanceState.getString(MSG_BOX_STATE_KEY);
+		msgBox.setText(msgBoxState);
+		
 		root.addView(msgBox);
 		
 		Button button = new Button(this); 
@@ -38,14 +44,31 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View source) 
 			{
-				source.postDelayed(new Runnable() {
-					@Override
-					public void run() 
-					{
-						int visibility = msgBox.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE;
-						msgBox.setVisibility(visibility);
-					}
-				}, 1000);
+				final EditText playerNameView = new EditText(MainActivity.this);
+				
+				new AlertDialog.Builder(MainActivity.this)
+					.setTitle("New entry")
+					.setMessage("Player name ?")
+					.setView(playerNameView)
+					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) 
+						{
+							playerNameView.postDelayed(new Runnable() {
+								@Override
+								public void run() 
+								{
+									msgBox.setText(playerNameView.getText());
+								}
+							}, 1000);
+						}
+					})
+					.setNegativeButton("Cancel", null)
+					.create()
+					.show();
+				
+				/*
+				*/
 			}
 		});
 		
@@ -80,7 +103,7 @@ public class MainActivity extends Activity {
 		});
 		boolean reversedState = false;
 		if(savedInstanceState != null)
-			reversedState = savedInstanceState.getBoolean("reversedState");
+			reversedState = savedInstanceState.getBoolean(GAME_STATE_KEY);
 		myView.setReversedState(reversedState);
 		root.addView(myView);
 		
@@ -92,8 +115,8 @@ public class MainActivity extends Activity {
 	{
 		super.onSaveInstanceState(outState);
 		
-		outState.putBoolean("isVisible", msgBox.getVisibility() == View.VISIBLE);
-		outState.putBoolean("reversedState", myView.getReversedState());
+		outState.putString(MSG_BOX_STATE_KEY, msgBox.getText().toString());
+		outState.putBoolean(GAME_STATE_KEY, myView.getReversedState());
 	}
 	
 	
